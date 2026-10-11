@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>六羽成光</title>
+
+  <!-- 基础重置 -->
+  <link rel="stylesheet" href="css/reset.css">
+  <!-- 页面整体布局 -->
+  <link rel="stylesheet" href="css/main.css">
+  <!-- 拼图模块自身样式 -->
+  <link rel="stylesheet" href="css/puzzle.css">
+  <!-- 色区卡片（card.png）样式 -->
+  <link rel="stylesheet" href="css/card.css">
+  <!-- 个人介绍名片（introduction.png）样式：所有文字模块位置都在这里单独可调 -->
+  <link rel="stylesheet" href="css/introduction.css">
+  <!-- 开场动画样式 -->
+  <link rel="stylesheet" href="css/opening.css">
+</head>
+<body>
+
+  <!-- ========== 开场动画层：大门图片 → 点击水波 → 视频 ========== -->
+  <div class="opening" id="opening">
+
+    <!-- 大门：静止时为一整张 door.png；点击推开时程序从中间裁成左右两半 -->
+    <div class="door-layer" id="doorLayer">
+      <!-- 完整的一扇门（静止态） -->
+      <img class="door-full" src="assets/images/door.png" alt="">
+      <!-- 推门瞬间露出的左右两半（与整图像素对齐，拼合无缝） -->
+      <div class="door-splits" id="doorSplits">
+        <div class="door-half door-half-left"><img src="assets/images/door.png" alt=""></div>
+        <div class="door-half door-half-right"><img src="assets/images/door.png" alt=""></div>
+      </div>
+      <!-- 大门 0.3 黑色蒙版，让标题文字更清晰（不影响点击） -->
+      <div class="door-mask"></div>
+    </div>
+
+    <!-- 大门标题文字：浮于大门之上，不参与推门，推门时淡出 -->
+    <div class="door-title" id="doorTitle">
+      <div class="door-title-line line-1">欢迎来到飞鸟的世界</div>
+      <div class="door-title-line line-2">北辰AI实习·第三组</div>
+    </div>
+
+    <!-- 水波容器 -->
+    <div class="ripple-container" id="rippleContainer"></div>
+
+    <!-- 视频层（大门后面） -->
+    <div class="opening-video" id="openingVideo">
+      <video id="introVideo" playsinline preload="auto">
+        <source src="assets/video/opening.mp4" type="video/mp4">
+      </video>
+      <button class="skip-btn" id="skipVideo">跳过 ▶</button>
+    </div>
+
+    <!-- 视频播完后：圆点光标 + 打开信封提示（全屏可点击） -->
+    <div class="open-letter-dot" id="openLetterDot">
+      <span class="dot"></span>
+      <span class="dot-text">打开信封</span>
+    </div>
+
+    <!-- background.png 场景层（柔和切换到此） -->
+    <div class="letter-scene" id="letterScene"></div>
+
+    <!-- 白底磨砂信件层：逐句文字 + 点击继续 -->
+    <div class="letter-layer" id="letterLayer">
+      <div class="letter-text" id="letterText"></div>
+      <div class="continue-hint" id="continueHint">点击继续</div>
+    </div>
+
+    <!-- 飞鸟碎片层：六块碎片从两侧浮现并聚拢 -->
+    <div class="fragment-layer" id="fragmentLayer"></div>
+
+    <!-- 点击音效 -->
+    <audio id="clickSound" preload="auto">
+      <source src="assets/audio/click.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <!-- ========== 拼图主内容（开场结束后显示） ========== -->
+  <section class="puzzle-embed" id="puzzleEmbed" style="opacity: 0;">
+    <div class="bg"></div>
+
+    <!-- 拼图标题：靠右，逐字呈现；拼图合拢时出现、散开时消失（见 css/puzzle.css 的 .puzzle-title） -->
+    <h1 class="puzzle-title" id="puzzleTitle">第三组 · 六羽成光</h1>
+
+    <!-- 拼图舞台：6块一级拼图，由 JS 动态生成二级小拼图 -->
+    <div class="stage" id="stage">
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="红色 · 创意破局块"></div>
+      </div>
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="橙色 · 内容叙事块"></div>
+      </div>
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="黄色 · 结构统筹块"></div>
+      </div>
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="蓝色 · 技术落地块"></div>
+      </div>
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="紫色 · 视觉呈现块"></div>
+      </div>
+      <div class="piece" data-level="1">
+        <div class="piece-inner" data-label="绿色 · 运营连接块"></div>
+      </div>
+      </div>
+
+    <button class="back-btn" id="backBtn">↩ 返回散开状态</button>
+
+    <!-- 提示语：放在底部 -->
+    <div class="hint" id="hint">✦ 点击拼图散开 → 点击碎片查看板块成员 ✦</div>
+
+    <!-- 色区卡片层（v6）：黑色蒙版 + card.png + 成员头像 -->
+    <div class="color-card-layer" id="colorCardLayer">
+      <div class="card-mask" id="cardMask"></div>
+      <div class="card-particles" id="cardParticles"></div>
+      <div class="color-card" id="colorCard">
+        <img class="card-bg" src="assets/images/card.png" alt="">
+        <!-- 组名标题（如「视觉呈现」）：白色无阴影，位置见 css/card.css 的 .color-card-group -->
+        <div class="color-card-group" id="colorCardGroup"></div>
+        <div class="card-overlay">
+          <div class="avatar-grid" id="avatarGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 个人介绍名片层（v7）：introduction.png 等比底图 + 按模板区域叠加文字
+         所有文字模块的位置统一在 css/introduction.css 里单独调节 -->
+    <div class="intro-card-layer" id="introCardLayer">
+      <div class="intro-card-mask" id="introCardMask"></div>
+      <div class="intro-card-wrap">
+        <div class="intro-card" id="introCard">
+          <img class="intro-bg" src="assets/images/introduction.png" alt="">
+          <!-- 文字按 introduction.png 模板区域叠加（坐标为底图百分比，随卡片等比缩放） -->
+          <div class="intro-overlay">
+            <div class="ic-field ic-nickname" id="introCardName"></div>
+            <div class="ic-field ic-slogan" id="introCardSlogan">请在此输入迷你 slogan</div>
+            <div class="ic-field ic-school" id="introCardSchool">请输入学校/专业</div>
+            <div class="ic-tags" id="introCardTags"></div>
+            <div class="ic-field ic-intro" id="introCardText">请在此输入一句话介绍</div>
+            <div class="ic-qr" id="introCardQr"></div>
+          </div>
+        </div>
+        <button class="intro-card-close" id="introCardClose">返 回</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 背景音乐：放在 body 下（不受开场层隐藏影响）
+       打开信封时由 opening.js 的 startBgMusic() 开始播放，循环，延续到拼图页 -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="assets/audio/bg.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 数据配置（先加载） -->
+  <script src="js/data.js"></script>
+  <!-- 全局点击音效工具（供全站调用，先加载） -->
+  <script src="js/click-sound.js"></script>
+  <!-- 拼图逻辑（暴露 window.startPuzzleEntrance） -->
+  <script src="js/puzzle.js"></script>
+  <!-- 开场动画逻辑（依赖 startPuzzleEntrance 与 playClickSound，放最后） -->
+  <script src="js/opening.js"></script>
+
+</body>
+</html>

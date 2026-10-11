@@ -1,0 +1,169 @@
+/* card.css —— 色区卡片（card.png）样式
+   说明：个人介绍名片（introduction.png）的样式已独立到 css/introduction.css
+   底图：assets/images/card.png = 1762×920（比例 ≈1.915）
+*/
+
+/* ========== 色区卡片层 ========== */
+.color-card-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8vh 2vw 2vh;   /* 顶部多留一些，给「卡片上方的组名标题」腾位置 */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.color-card-layer.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* 背景黑色 0.3 蒙版 */
+.card-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+/* 淡黄色粒子光效（围绕卡片缓慢漂浮） */
+.card-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.card-particles .particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 233, 168, 0.95) 0%, rgba(245, 233, 168, 0) 70%);
+  box-shadow: 0 0 8px rgba(245, 233, 168, 0.6);
+  opacity: 0;
+  animation-name: particleFloat;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes particleFloat {
+  0%   { transform: translate(0, 0);        opacity: 0; }
+  20%  { opacity: 0.9; }
+  80%  { opacity: 0.9; }
+  100% { transform: translate(14px, -46px);  opacity: 0; }
+}
+
+/* ========== 组名标题：位于卡片【上方 10%】处，纯白无阴影 ==========
+   说明：组名在 .color-card 内部定位，并随卡片一起做入场缩放，
+         所以这里的百分比是相对【卡片自身宽高】的，所见即所得。 */
+.color-card-group {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10%);   /* ★ 100% = 贴住卡片顶边，+10% 表示再往上抬卡片高度的 10%；想更近/更远改这个值 */
+  transform: translateX(-50%);
+  white-space: nowrap;
+  line-height: normal;
+  pointer-events: none;
+
+  color: #ffffff;             /* 纯白 */
+  text-shadow: none;          /* 不要阴影 */
+  font-family: "Songti SC", "STSong", "SimSun", "宋体", "Noto Serif SC", serif;
+  font-size: clamp(1.1rem, 2.2vw, 1.9rem);   /* ← 可调：字号 */
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;        /* 抵消字距造成的右侧留白，保持视觉居中 */
+}
+
+/* card.png 底图：按图片原始比例显示，不拉伸变形 */
+.color-card {
+  position: relative;
+  z-index: 2;
+  display: inline-block;   /* 收缩到图片尺寸，由 img 决定大小 */
+  line-height: 0;
+  transform: scale(0.82);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s ease;
+}
+.color-card .card-bg {
+  display: block;
+  /* 原始 1762×920（比例 ≈1.915）；用 width 约束、height:auto 保证等比不变形 */
+  width: min(700px, 92vw, calc(80vh * 1.915));
+  height: auto;
+  border-radius: 16px;
+}
+/* 头像叠加层（与底图同框） */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  line-height: normal;
+}
+.color-card-layer.show .color-card {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* 头像网格：集中在卡片右侧，受卡片尺寸约束不溢出 */
+.avatar-grid {
+  position: absolute;
+  right: 4%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0px;
+  max-width: 60%;
+}
+/* 仅 2×2 的四人色区头像组右移到 15% */
+.avatar-grid.pos-4 {
+  right: 15%;
+}
+.avatar-row {
+  display: flex;
+  gap: -1px;
+  justify-content: center;
+}
+.avatar-row img {
+  margin: -6px -1px;
+}
+
+/* 单个头像：保留抠图原轮廓，发光沿实体边缘（drop-shadow 跟 alpha），不裁切、无黑底白边 */
+.avatar {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  cursor: pointer;
+  filter: drop-shadow(0 0 12px rgba(245, 233, 168, 0.9));
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2), filter 0.3s ease;
+}
+.avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+.avatar:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 20px rgba(245, 233, 168, 1));
+  z-index: 5;
+}
+.avatar.flipping {
+  animation: avatarFlip 0.5s ease forwards;
+}
+@keyframes avatarFlip {
+  0%   { transform: rotateY(0deg) scale(1); }
+  50%  { transform: rotateY(90deg) scale(1.06); }
+  100% { transform: rotateY(180deg) scale(1); }
+}
+
+/* 移动端收敛 */
+@media (max-width: 520px) {
+  .avatar { width: 90px; height: 90px; }
+  .avatar-row { gap: 0px; }
+  .avatar-grid { gap: 0px; right: 5%; }
+  .color-card-group { font-size: 1.1rem; letter-spacing: 0.22em; }
+}

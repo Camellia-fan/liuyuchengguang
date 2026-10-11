@@ -1,0 +1,485 @@
+/* =========================================================
+   开场动画：大门图片 → 点击水波 → 推门 → 视频 → 页面
+   ========================================================= */
+
+/* 外层容器：全屏覆盖，最高层级 */
+.opening {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow: hidden;
+  background: #000;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+.opening.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ---------- 大门层 ---------- */
+.door-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  cursor: pointer;
+  perspective: 1200px;            /* 推门 3D 透视 */
+}
+
+/* 完整的一扇门（静止态，单张 door.png） */
+.door-full {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 大门呼吸感（轻微缩放循环，暗示可点击） */
+@keyframes doorBreath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.015); }
+}
+.door-layer:not(.pushed) .door-full {
+  animation: doorBreath 4s ease-in-out infinite;
+}
+
+/* 悬停发光（米白色，与飞鸟光晕统一视觉） */
+.door-layer:hover .door-full {
+  filter: brightness(1.12) drop-shadow(0 0 30px rgba(243, 239, 224, 0.55));
+}
+
+/* 推门时：隐藏完整门，露出左右两半（程序从中间裁开，与整图像素对齐） */
+.door-splits {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.opening.doors-open .door-full {
+  opacity: 0;
+}
+.opening.doors-open .door-splits {
+  opacity: 1;
+}
+
+/* 两半门：各 50% 宽，内部整图 200% 宽拼合，推门时向两侧移出 + 3D 旋转 */
+.door-half {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 1.4s cubic-bezier(0.77, 0, 0.175, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.door-half-left  { left: 0;  transform-origin: left center; }
+.door-half-right { right: 0; transform-origin: right center; }
+.door-half img {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 200%;
+  object-fit: cover;
+  display: block;
+}
+.door-half-left img  { left: 0; }
+.door-half-right img { right: 0; }
+
+/* 推开状态：左半左移 + 透视，右半右移 + 透视 */
+.opening.doors-open .door-half-left {
+  transform: translateX(-100%) rotateY(-12deg);
+}
+.opening.doors-open .door-half-right {
+  transform: translateX(100%) rotateY(12deg);
+}
+
+/* 推门后大门层不再拦截点击，保证跳过按钮 / 视频点击可穿透 */
+.door-layer.pushed {
+  pointer-events: none;
+}
+
+/* 大门 0.3 黑色蒙版：压暗门面，让白色标题文字更清晰（不拦截点击） */
+.door-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 3;              /* 在大门图像之上，但大门标题(在 door-layer 外 z5)仍在其上 */
+  background: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+/* 推门时随大门一起淡出 */
+.opening.doors-open .door-mask {
+  opacity: 0;
+}
+
+/* ---------- 大门标题文字：浮于大门上方，不参与推门 ---------- */
+/* 放在 .door-layer 之外（z-index 高于大门），推门时淡出，更干净 */
+.door-title {
+  position: absolute;
+  left: 50%;
+  top: 65%;                 /* 中间偏下，不挡大门视觉重心 */
+  transform: translate(-50%, -50%);
+  z-index: 5;               /* 高于大门(z3)/水波(z4)，低于圆点提示(z8) */
+  text-align: center;
+  pointer-events: none;     /* 不拦截点击，门仍可点 */
+  opacity: 1;               /* 与大门同时出现，不延迟淡入 */
+  transition: opacity 0.6s ease;  /* 仅用于推门时淡出 */
+}
+
+.door-title .door-title-line {
+  font-family: "Songti SC", "STSong", "SimSun", "宋体", "Noto Serif SC", serif;
+  color: #f7f4ec;                                   /* 白色 */
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);    /* 白色微发光 */
+  white-space: nowrap;
+}
+
+.door-title .line-1 {
+  font-size: 1.7rem;
+  letter-spacing: 0.28em;
+  padding-left: 0.28em;     /* 抵消字距在右侧的留白，保持视觉居中 */
+  margin-bottom: 0.65rem;
+  opacity: 1;               /* 主 */
+}
+.door-title .line-2 {
+  font-size: 1rem;
+  letter-spacing: 0.34em;
+  padding-left: 0.34em;
+  opacity: 0.92;            /* 次 */
+  color: #e6e2d6;
+}
+
+/* 推门时（doors-open）：文字淡出，不参与推门 */
+.opening.doors-open .door-title {
+  opacity: 0;
+}
+
+/* 移动端：字号收敛，避免溢出 */
+@media (max-width: 520px) {
+  .door-title .line-1 { font-size: 1.25rem; }
+  .door-title .line-2 { font-size: 0.78rem; }
+}
+
+/* ---------- 水波 ---------- */
+.ripple-container {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(243, 239, 224, 0.6) 0%,
+    rgba(243, 239, 224, 0.3) 40%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleExpand 1.2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes rippleExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+/* 第二圈水波（延迟） */
+.ripple.delay {
+  animation-delay: 0.2s;
+}
+
+/* ---------- 视频层 ---------- */
+.opening-video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.opening-video.show {
+  opacity: 1;
+}
+
+.opening-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 跳过按钮 */
+.skip-btn {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 5;
+  padding: 0.5rem 1.4rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.3s;
+}
+
+.skip-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 移动端 */
+@media (max-width: 520px) {
+  .skip-btn {
+    bottom: 1.2rem;
+    right: 1.2rem;
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+  }
+}
+
+/* =========================================================
+   v5 增补（更新版）：视频停留 → 圆点光标 → background.png 场景
+   → 白底磨砂信件 → 逐句文字 → 碎片浮现 → 点击继续 → 聚拢 → 拼图
+   ========================================================= */
+
+@keyframes hintBreath {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.95; }
+}
+
+/* ---------- 圆点光标 + 「打开信封」提示 ---------- */
+.open-letter-dot {
+  position: absolute;
+  inset: auto;
+  top: 43%;
+  left: 55.5%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.open-letter-dot.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.open-letter-dot .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(243, 239, 224, 0.92);
+  box-shadow: 0 0 16px 5px rgba(243, 239, 224, 0.55);
+  animation: dotBreath 2s ease-in-out infinite;
+}
+
+.open-letter-dot .dot-text {
+  color: rgba(243, 239, 224, 0.82);
+  font-size: 0.9rem;
+  letter-spacing: 5px;
+  font-family: "STKaiti", "KaiTi", "楷体", serif;
+  animation: hintBreath 2.6s ease-in-out infinite;
+}
+
+@keyframes dotBreath {
+  0%, 100% { transform: scale(1);   opacity: 0.6; box-shadow: 0 0 10px 2px rgba(243, 239, 224, 0.4); }
+  50%      { transform: scale(1.4); opacity: 1;   box-shadow: 0 0 20px 7px rgba(243, 239, 224, 0.7); }
+}
+
+/* ---------- background.png 场景层 ---------- */
+.letter-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: url("../assets/images/background.png") center center / cover no-repeat;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 1.1s ease, visibility 1.1s ease;
+}
+
+.letter-scene.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---------- 白色磨砂透明信件层 ---------- */
+.letter-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 7;
+  width: min(94%, 780px);
+  min-height: 340px;
+  padding: 2.8rem 3rem;
+  transform: translate(-50%, -50%) scale(0.7);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  /* 白色磨砂透明：半透明白底 + 背景模糊 */
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 48px rgba(60, 50, 40, 0.22);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.9s ease;
+}
+
+.letter-layer.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.letter-layer.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---------- 逐句文字 ---------- */
+.letter-text {
+  position: relative;
+  z-index: 1;
+  color: #3a322a;
+  font-size: 1.05rem;
+  line-height: 2.15;
+  text-align: center;
+  letter-spacing: 1px;
+  font-family: "STKaiti", "KaiTi", "楷体", serif;
+}
+
+.letter-text .line {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  white-space: nowrap;   /* 每行文字不折行，完整显示在一行 */
+}
+
+.letter-text .line.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- 「点击继续」提示（信件下方） ---------- */
+.continue-hint {
+  position: relative;
+  z-index: 1;
+  margin-top: 1.8rem;
+  font-size: 0.82rem;
+  letter-spacing: 3px;
+  color: #8a7d6b;
+  font-family: "STKaiti", "KaiTi", "楷体", serif;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.continue-hint.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  animation: hintBreath 2.6s ease-in-out infinite;
+}
+
+/* ---------- 飞鸟碎片 ---------- */
+.fragment-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 外层：负责在场景中的定位，以及聚拢时的位移 */
+.fragment {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  will-change: transform;
+}
+
+.fragment.show {
+  opacity: 1;
+}
+
+/* 内层：负责图片与轻微的上下漂浮（与外层位移解耦，聚拢时不断裂） */
+.fragment-inner {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+}
+
+.fragment.floating .fragment-inner {
+  animation: fragmentFloat 4.2s ease-in-out infinite;
+}
+
+/* 聚拢：外层平滑移动到目标网格位置，拼成完整画面 */
+.fragment.converge {
+  opacity: 1;
+  transition: transform 1.5s cubic-bezier(0.55, 0, 0.45, 1), opacity 1.2s ease;
+}
+
+@keyframes fragmentFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+
+/* 移动端适配 */
+@media (max-width: 520px) {
+  .fragment {
+    width: 84px;
+    height: 84px;
+  }
+  .letter-layer {
+    padding: 2rem 1.6rem;
+    min-height: 240px;
+  }
+  .letter-text {
+    font-size: 0.9rem;
+    line-height: 1.9;
+  }
+  .open-letter-dot .dot-text {
+    font-size: 0.8rem;
+  }
+}

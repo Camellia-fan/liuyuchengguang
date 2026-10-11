@@ -1,0 +1,209 @@
+/* main.css —— 页面整体布局、背景、标题、按钮、成员弹窗 */
+
+body {
+  min-height: 100vh;
+  background: #06080f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  padding: 1.5rem;
+  overflow-x: hidden;
+  padding-top: 4rem;
+  padding-bottom: 3rem;
+  position: relative;
+}
+
+/* 背景：纯净的 background.png（无蒙版） */
+.bg {
+  position: fixed;
+  inset: 0;
+  background: url('../assets/images/background.png') center / cover no-repeat;
+  z-index: -2;
+}
+
+h1 {
+  color: #eaf2ff;
+  font-weight: 300;
+  letter-spacing: 6px;
+  font-size: 1.7rem;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 0 20px #3a7bd5;
+  margin-top: 1rem;
+}
+
+.hint {
+  color: #9fb0d6;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  margin-bottom: 1.2rem;
+  transition: opacity 0.5s;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+/* 拼图舞台（整体布局容器）：按参考图飞鸟比例采用宽幅。
+   宽度受「屏幕宽 - 边距」约束，并额外受屏幕高度约束，
+   保证六块碎片（含向上溢出的部分）整体不浮出屏幕。 */
+.stage {
+  position: relative;
+  width: min(calc(100vw - 4rem), 860px);        /* ← 可调：拼图最大宽度 */
+  max-width: calc((100vh - 340px) * 1.8);       /* ← 可调：340px = 标题/提示语/上下留白预留 */
+  aspect-ratio: 1.8 / 1;
+  margin-top: 4.5rem;                           /* 留出碎片向上溢出的空间 */
+  margin-bottom: 2rem;
+  perspective: 1600px;
+}
+
+/* 返回按钮（二级展开时显示） */
+.back-btn {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 1.4rem;
+  background: #1a2a44;
+  border: 1px solid #4aa8ff;
+  color: #a8d0ff;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 200;
+}
+.back-btn.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.back-btn:hover {
+  background: #2a4a77;
+  box-shadow: 0 0 20px #0080ff60;
+  color: #fff;
+}
+
+/* 全局重置按钮 */
+.reset-all-btn {
+  margin-top: 1rem;
+  padding: 0.55rem 1.8rem;
+  background: transparent;
+  border: 1px solid rgba(100, 180, 255, 0.35);
+  color: #7a9cc8;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+}
+.reset-all-btn:hover {
+  background: #4aa8ff18;
+  border-color: #6cc4ff;
+  color: #c0d8ff;
+}
+
+/* 成员介绍弹窗 */
+.intro-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(5, 8, 16, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 500;
+  padding: 1.5rem;
+}
+.intro-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.intro-box {
+  background: rgba(22, 32, 52, 0.95);
+  border-radius: 1.8rem;
+  padding: 2rem 2.2rem;
+  max-width: 440px;
+  width: 100%;
+  border: 1px solid rgba(100, 180, 255, 0.4);
+  box-shadow: 0 30px 60px -15px #000, 0 0 40px #0066ff30, inset 0 1px 2px rgba(255,255,255,0.08);
+  transform: translateY(20px) scale(0.96);
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  text-align: center;
+}
+.intro-modal.show .intro-box {
+  transform: translateY(0) scale(1);
+}
+.intro-box .avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4facfe, #764ba2);
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 8px 25px #0066ff60;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.intro-box .intro-name {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #c0d8ff;
+  letter-spacing: 2px;
+  margin-bottom: 0.8rem;
+}
+.intro-box .intro-desc {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #a8bce0;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+.intro-box .intro-desc strong {
+  color: #7ab8ff;
+  font-weight: 500;
+}
+.close-modal {
+  padding: 0.55rem 2rem;
+  background: transparent;
+  border: 1px solid rgba(100, 180, 255, 0.5);
+  color: #9ac2ff;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.close-modal:hover {
+  background: #4aa8ff22;
+  border-color: #6cc4ff;
+  color: #fff;
+  box-shadow: 0 0 20px #0080ff40;
+}
+
+@media (max-width: 520px) {
+  body {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+  }
+  h1 { font-size: 1.3rem; letter-spacing: 4px; margin-top: 0.5rem; }
+  .stage {
+    width: min(calc(100vw - 2rem), 86vw);
+    max-width: calc((100vh - 260px) * 1.8);
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+  }
+  .intro-box { padding: 1.5rem 1.4rem; }
+}

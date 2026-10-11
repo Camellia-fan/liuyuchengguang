@@ -1,0 +1,350 @@
+/* puzzle.css —— 拼图模块自身样式（一级拼图 / 飞鸟图 / 二级小拼图） */
+
+/* =========================================================
+   拼图标题「第三组 · 六羽成光」：白色字 + 浅黄阴影，靠右，逐字呈现
+   显示/隐藏由 JS 控制 .show 类：拼图合拢时出现、散开时消失
+   ========================================================= */
+.puzzle-title {
+  /* 宽度紧贴文字，右对齐到与 .stage 右边缘同一位置 */
+  width: fit-content;
+  max-width: 100%;
+  margin: 1rem 0 0.2rem;                  /* ← 可调：标题上下留白 */
+  margin-left: auto;
+  margin-right: calc((100% - min(calc(100vw - 4rem), 860px)) / 2);  /* 与 .stage 右边对齐，勿轻易改 */
+
+  text-align: right;                      /* ← 可调：right(靠右) / left / center */
+  padding-right: 0.2em;
+
+  /* 纯白文字 */
+  background-image: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #ffffff;                         /* ← 可调：字色 */
+  -webkit-text-fill-color: #ffffff;       /* 配合上面的 color，Safari/Chrome 都生效 */
+
+  font-family: 'FangZhengDaBiaoSong', "Songti SC", "STSong", "SimSun", "宋体", "Noto Serif SC", serif;
+  font-weight: 300;
+  font-size: clamp(1.4rem, 2.6vw, 2.1rem);/* ← 可调：字号 */
+  letter-spacing: 0.32em;                 /* ← 可调：字距 */
+  line-height: 1.4;
+  /* 浅黄色阴影 */
+  text-shadow: 0 0 14px rgba(255, 238, 176, 0.75),
+               0 0 30px rgba(255, 226, 130, 0.45);  /* ← 可调：阴影 */
+
+  opacity: 0;                             /* 默认隐藏 */
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+}
+.puzzle-title.show { opacity: 1; }         /* JS 拼合时加上 */
+
+/* 单个字：默认不可见，.show 时按各自延迟逐字淡入（延迟由 JS 写在 style 上） */
+.pz-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.puzzle-title.show .pz-char {
+  animation: pzCharIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+@keyframes pzCharIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 提示语：底部，白色 ---------- */
+.hint {
+  margin-top: 3rem;                       /* ← 可调：往下排（越大越靠下） */
+  margin-bottom: 0.6rem;
+  color: #ffffff;                         /* ← 可调：小字颜色 */
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- 一级拼图：6大块 ---------- */
+.piece {
+  position: absolute;
+  width: 33.333%;
+  height: 50%;
+  cursor: pointer;
+  transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1),
+              filter 0.6s ease;
+  will-change: transform;
+  transform-style: preserve-3d;
+  z-index: 1;
+}
+
+/* 飞鸟图本身已扣好，只显示原始形状，不加底色/阴影/方框/光晕 */
+.piece-inner {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.8s;
+}
+
+/* 飞鸟图片对应六大拼图（替换原渐变）；--bird 供入场流光遮罩贴合抠图形状 */
+.piece:nth-child(1) .piece-inner {
+  --bird: url('../assets/images/bird-body-red.png');
+  background-image: var(--bird);
+}
+.piece:nth-child(2) .piece-inner {
+  --bird: url('../assets/images/bird-body-cyan.png'); /* 说明为橙色板块，暂无橙色飞鸟，暂用青色图占位 */
+  background-image: var(--bird);
+}
+.piece:nth-child(3) .piece-inner {
+  --bird: url('../assets/images/bird-body-yellow.png');
+  background-image: var(--bird);
+}
+.piece:nth-child(4) .piece-inner {
+  --bird: url('../assets/images/bird-body-blue.png');
+  background-image: var(--bird);
+}
+.piece:nth-child(5) .piece-inner {
+  --bird: url('../assets/images/bird-body-purple.png');
+  background-image: var(--bird);
+}
+.piece:nth-child(6) .piece-inner {
+  --bird: url('../assets/images/bird-body-green.png');
+  background-image: var(--bird);
+}
+
+/* 不显示图上的板块名称标签 */
+.piece-inner::after {
+  content: none;
+}
+
+/* 六大拼图的位置：你逐块调好的坐标（未改动，仅舞台层做整体收屏）
+   参考图：红=左上翅膀 / 黄=上中 / 蓝=右侧鸟头鸟身 / 紫=左下尾巴 / 绿=下中 / 青=右下翅膀 */
+.piece:nth-child(1) { top: -44.2%;    left: -8%;  width: 45.5%; height: 120%; transform: rotate(-3deg); } /* 红 · 左上翅膀 */
+.piece:nth-child(2) { top: 18.5%;  left: 59.9%;  width: 45%; height: 100%; transform: rotate(-2deg); } /* 青 · 右下翅膀 */
+.piece:nth-child(3) { top: -41%;   left: 26.7%;  width: 41%; height: 140%; transform: rotate(2deg);  } /* 黄 · 上中 */
+.piece:nth-child(4) { top: -21.5%;  left: 52.3%;  width: 43%; height: 100%; transform: rotate(3deg);  } /* 蓝 · 鸟头鸟身 */
+.piece:nth-child(5) { top: 23%;  left: -4%;  width: 45%; height: 100%; transform: rotate(3deg);  } /* 紫 · 左下尾巴 */
+.piece:nth-child(6) { top: 19.6%;  left: 30.5%;  width: 38%; height: 100%; transform: rotate(0deg);  } /* 绿 · 下中 */
+
+/* ---------- 入场动画：碎片从四面八方错峰飞入并拼合 ---------- */
+/* 终态 transform 与未散开静止态(scale .99)一致，动画结束后无缝衔接 */
+.stage.entering .piece {
+  opacity: 0;
+  animation: floatIn 2.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+/* 逐块错峰（来自规格表） */
+.stage.entering .piece:nth-child(1) { animation-delay: 0s;    --from-x: -150%; --from-y: -120%; --from-rot: -45deg; }
+.stage.entering .piece:nth-child(2) { animation-delay: 0.2s;  --from-x: 0%;    --from-y: -180%; --from-rot: 30deg;  }
+.stage.entering .piece:nth-child(3) { animation-delay: 0.4s;  --from-x: 150%;  --from-y: -120%; --from-rot: 45deg;  }
+.stage.entering .piece:nth-child(4) { animation-delay: 0.6s;  --from-x: -150%; --from-y: 120%;  --from-rot: 45deg;  }
+.stage.entering .piece:nth-child(5) { animation-delay: 0.8s;  --from-x: 0%;    --from-y: 180%;  --from-rot: -30deg; }
+.stage.entering .piece:nth-child(6) { animation-delay: 1.0s;  --from-x: 150%;  --from-y: 120%;  --from-rot: -45deg; }
+
+@keyframes floatIn {
+  0%   { opacity: 0; transform: translate(var(--from-x), var(--from-y)) rotate(var(--from-rot)) scale(0.3); }
+  60%  { opacity: 0.9; }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.99); }
+}
+
+/* 每块碎片自身的流动光（流光），用 --bird 遮罩贴合抠图形状，仅入场时显示 */
+.stage.entering .piece-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 35%, rgba(255, 250, 214, 0.6) 50%, transparent 65%);
+  background-size: 300% 100%;
+  -webkit-mask-image: var(--bird);
+  mask-image: var(--bird);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  animation: shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* 入场中悬停：暂停飞入 + 轻微放大发光 */
+.stage.entering .piece:hover {
+  animation-play-state: paused;
+  filter: brightness(1.3) drop-shadow(0 0 16px rgba(243, 239, 224, 0.9));
+  z-index: 50;
+}
+
+/* 移动端：减小飞入位移，避免碎片飞出屏幕太远 */
+@media (max-width: 520px) {
+  .stage.entering .piece:nth-child(1) { --from-x: -110%; --from-y: -90%; }
+  .stage.entering .piece:nth-child(2) { --from-x: 0%;    --from-y: -130%; }
+  .stage.entering .piece:nth-child(3) { --from-x: 110%;  --from-y: -90%; }
+  .stage.entering .piece:nth-child(4) { --from-x: -110%; --from-y: 90%; }
+  .stage.entering .piece:nth-child(5) { --from-x: 0%;    --from-y: 130%; }
+  .stage.entering .piece:nth-child(6) { --from-x: 110%;  --from-y: 90%; }
+}
+
+/* 未散开：轻微放大 */
+.stage:not(.exploded) .piece {
+  transform: scale(0.99);
+  filter: brightness(1.05);
+  z-index: 2;
+}
+
+/* =========================================================
+   散开参数（★ 想调「散开得多远」只改这里）
+   --spread ：散开幅度总系数。1 = 原始幅度，0.55 = 收拢约一半
+              （想更聚拢调小，想更散开调大，0 = 完全不散开）
+   --float  ：上下悬浮的幅度（px）
+   --scale  ：散开后每块的缩放
+   --lift   ：散开后整体上移量（配合提示语下移，给底部让出空间）
+   下面的 --ex/--ey/--rot 是每一块的原始方向与角度，一般不用动
+   ========================================================= */
+.stage {
+  --spread: 0.55;   /* ← 可调：散开距离（当前已收小约 45%） */
+  --float: -8px;    /* ← 可调：上下悬浮幅度（负数＝向上飘） */
+  --scale: 0.8;     /* ← 可调：散开后缩放 */
+  --lift: -8%;      /* ← 可调：散开后整体上移量（负数＝上移，0＝不移动） */
+}
+
+/* 散开：从飞鸟结构向四周漂开 */
+.stage.exploded .piece {
+  filter: brightness(1.1);
+  z-index: 10;
+  animation: float 3s ease-in-out infinite alternate;
+}
+/* 散开：四处漂开 + 悬浮（漂浮动画见下方 @keyframes float） */
+.stage.exploded .piece:nth-child(1) {
+  --ex: -28%; --ey: -22%; --rot: -14deg;
+  animation-delay: 0s;
+}
+.stage.exploded .piece:nth-child(2) {
+  --ex: 30%; --ey: 26%; --rot: 10deg;
+  animation-delay: 0.4s;
+}
+.stage.exploded .piece:nth-child(3) {
+  --ex: -4%; --ey: -46%; --rot: 12deg;
+  animation-delay: 0.8s;
+}
+.stage.exploded .piece:nth-child(4) {
+  --ex: 34%; --ey: -18%; --rot: -10deg;
+  animation-delay: 0.2s;
+}
+.stage.exploded .piece:nth-child(5) {
+  --ex: -30%; --ey: 24%; --rot: 14deg;
+  animation-delay: 0.6s;
+}
+.stage.exploded .piece:nth-child(6) {
+  --ex: 2%; --ey: 46%; --rot: -8deg;
+  animation-delay: 1s;
+}
+
+/* 统一位移：方向/角度取各块的 --ex/--ey/--rot，距离由 --spread 总系数缩放，
+   再叠加 --lift 让散开后的碎片整体上移 */
+.stage.exploded .piece {
+  transform: translate(calc(var(--ex, 0%) * var(--spread, 1)),
+                       calc(var(--ey, 0%) * var(--spread, 1) + var(--lift, 0%)))
+             rotate(var(--rot, 0deg))
+             scale(var(--scale, 0.8));
+}
+
+@keyframes float {
+  0%   { margin-top: 0px; }
+  100% { margin-top: var(--float, -12px); }   /* 上下悬浮幅度，由 --float 控制 */
+}
+
+/* 展开：放大显示成员小拼图 */
+.piece.expanded {
+  z-index: 100 !important;
+  animation: none !important;
+  margin-top: 0 !important;
+  cursor: default;
+  transform: translate(0, 0) rotate(0deg) scale(2.1) !important;
+  filter: brightness(1.2) !important;
+  transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+              filter 0.5s ease;
+}
+.piece.expanded .piece-inner {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* ---------- 二级小拼图（成员） ---------- */
+.sub-grid {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 6px;
+  padding: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease 0.25s;
+  z-index: 5;
+  border-radius: 8px;
+  background: rgba(10, 15, 28, 0.4);
+  backdrop-filter: blur(2px);
+}
+.piece.expanded .sub-grid {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sub-piece {
+  background: #1e2538;
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+              filter 0.3s,
+              box-shadow 0.3s;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  text-align: center;
+  padding: 2px;
+}
+.sub-piece .sub-name {
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+  line-height: 1.25;
+  position: relative;
+  z-index: 2;
+}
+.sub-piece.placeholder {
+  cursor: default;
+}
+.sub-piece.placeholder .sub-name {
+  color: rgba(255,255,255,0.35);
+  font-weight: 400;
+}
+.sub-piece:hover:not(.placeholder) {
+  transform: scale(1.08);
+  filter: brightness(1.4);
+  box-shadow: 0 0 0 2px #f3efe0, 0 8px 20px rgba(243,239,224,0.5);
+  z-index: 20;
+}
+.sub-piece.active-sub {
+  transform: scale(1.12);
+  filter: brightness(1.5);
+  box-shadow: 0 0 0 3px #ffffff, 0 0 30px #f3efe0;
+  z-index: 25;
+}
+
+@media (max-width: 520px) {
+  .piece.expanded {
+    transform: translate(0, 0) rotate(0deg) scale(1.9) !important;
+  }
+  .sub-grid { gap: 5px; padding: 6px; }
+  .sub-piece .sub-name { font-size: 0.58rem; }
+}
